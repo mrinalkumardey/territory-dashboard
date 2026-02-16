@@ -9,7 +9,7 @@ export default async function Home() {
     return parseFloat(cleaned) || 0;
   };
 
-  // Grand Totals Calculation
+  // 1. Grand Totals Calculation (Fixed Types)
   const totalTarget = data.reduce((sum: number, row: any) => sum + clean(row["Disb. Target"]), 0);
   const totalDone = data.reduce((sum: number, row: any) => sum + clean(row["Disb. Done"]), 0);
   const totalGap = totalTarget - totalDone;
@@ -21,6 +21,7 @@ export default async function Home() {
 
       <div className="max-w-6xl mx-auto px-6 py-12 flex-grow">
         
+        {/* Main Header */}
         <header className="mb-12 border-b border-slate-200 pb-8 flex justify-between items-end">
           <div>
             <h1 className="text-4xl font-black text-slate-800 tracking-tight">
@@ -35,7 +36,7 @@ export default async function Home() {
           </div>
         </header>
 
-        {/* Hero Scorecard */}
+        {/* Hero Scorecard Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
           <div className="lg:col-span-2 bg-white rounded-3xl p-8 shadow-sm border border-slate-200 flex flex-col justify-center">
             <div className="flex justify-between items-start">
@@ -76,7 +77,7 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Territory Stars - FIXED TYPES HERE */}
+        {/* Territory Stars (Top 3 FLOs) - Fixed Types */}
         <div className="mb-12">
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] mb-6">Top 3 Performers</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -109,7 +110,7 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Branch Performance Comparison - FIXED TYPES HERE */}
+        {/* Branch Analysis - Fixed Types */}
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 mb-12">
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] mb-8">Branch Analysis (Achievement)</h3>
           <div className="space-y-6">
@@ -148,6 +149,7 @@ export default async function Home() {
               </div>
               <span className="text-2xl">→</span>
             </a>
+            
             <div className="p-6 bg-white border border-slate-200 rounded-3xl flex items-center justify-between">
                <div className="grid grid-cols-2 gap-4 w-full">
                   {['Golaghat', 'Tezpur', 'Dhekiajuli', 'Gohpur'].map(b => (
@@ -160,6 +162,7 @@ export default async function Home() {
         </div>
       </div>
 
+      {/* Footer Section */}
       <footer className="w-full py-8 border-t border-slate-200 text-center bg-white">
         <p className="text-slate-400 text-xs font-medium uppercase tracking-widest">
           Developed by{" "}
