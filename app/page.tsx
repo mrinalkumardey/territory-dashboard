@@ -10,8 +10,8 @@ export default async function Home() {
   };
 
   // Grand Totals Calculation
-  const totalTarget = data.reduce((sum, row) => sum + clean(row["Disb. Target"]), 0);
-  const totalDone = data.reduce((sum, row) => sum + clean(row["Disb. Done"]), 0);
+  const totalTarget = data.reduce((sum: number, row: any) => sum + clean(row["Disb. Target"]), 0);
+  const totalDone = data.reduce((sum: number, row: any) => sum + clean(row["Disb. Done"]), 0);
   const totalGap = totalTarget - totalDone;
   const territoryPct = totalTarget > 0 ? (totalDone / totalTarget) * 100 : 0;
 
@@ -121,8 +121,8 @@ export default async function Home() {
           <div className="space-y-6">
             {['Golaghat', 'Tezpur', 'Dhekiajuli', 'Gohpur'].map((branchName) => {
               const branchData = data.filter(row => row.Branch?.toString().toLowerCase() === branchName.toLowerCase());
-              const bTarget = branchData.reduce((sum, row) => sum + clean(row["Disb. Target"]), 0);
-              const bDone = branchData.reduce((sum, row) => sum + clean(row["Disb. Done"]), 0);
+              const bTarget = branchData.reduce((sum: number, row: any) => sum + clean(row["Disb. Target"]), 0);
+              const bDone = branchData.reduce((sum: number, row: any) => sum + clean(row["Disb. Done"]), 0);
               const bPct = bTarget > 0 ? Math.min((bDone / bTarget) * 100, 100) : 0;
 
               return (
