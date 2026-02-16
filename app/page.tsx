@@ -1,8 +1,19 @@
-// Version 1.0.4 - Production Type Fix
+// Version 1.0.5 - Final Type Definition Fix
 import { getSheetData } from "@/components/dataFetcher";
 
+// This tells TypeScript exactly what to expect in each row
+interface SheetRow {
+  "FLO Name": string;
+  "Branch": string;
+  "Disb. Target": any;
+  "Disb. Done": any;
+  [key: string]: any; // This allows for other columns without errors
+}
+
 export default async function Home() {
-  const data = await getSheetData();
+  const rawData = await getSheetData();
+  // Force the data to follow our SheetRow rules
+  const data = rawData as SheetRow[];
   
   const clean = (val: any): number => {
     if (!val) return 0;
@@ -10,9 +21,9 @@ export default async function Home() {
     return parseFloat(cleaned) || 0;
   };
 
-  // 1. Grand Totals Calculation
-  const totalTarget = data.reduce((sum: number, row: any) => sum + clean(row["Disb. Target"]), 0);
-  const totalDone = data.reduce((sum: number, row: any) => sum + clean(row["Disb. Done"]), 0);
+  // Grand Totals Calculation
+  const totalTarget = data.reduce((sum: number, row: SheetRow) => sum + clean(row["Disb. Target"]), 0);
+  const totalDone = data.reduce((sum: number, row: SheetRow) => sum + clean(row["Disb. Done"]), 0);
   const totalGap = totalTarget - totalDone;
   const territoryPct = totalTarget > 0 ? (totalDone / totalTarget) * 100 : 0;
 
@@ -36,7 +47,7 @@ export default async function Home() {
           </div>
         </header>
 
-        {/* Hero Scorecard */}
+        {/* Hero Scorecard Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
           <div className="lg:col-span-2 bg-white rounded-3xl p-8 shadow-sm border border-slate-200 flex flex-col justify-center">
             <div className="flex justify-between items-start">
@@ -77,20 +88,20 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Territory Stars - PULLING AS ANY TO BYPASS UNKNOWN ERROR */}
+        {/* Territory Stars - TYPE FIXED BY INTERFACE */}
         <div className="mb-12">
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] mb-6">Top 3 Performers</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {(data as any[])
-              .filter((row: any) => row && row["FLO Name"])
-              .map((row: any) => ({
+            {data
+              .filter((row: SheetRow) => row && row["FLO Name"])
+              .map((row: SheetRow) => ({
                 name: row["FLO Name"],
                 branch: row["Branch"],
                 pct: (clean(row["Disb. Done"]) / clean(row["Disb. Target"])) * 100
               }))
               .sort((a, b) => b.pct - a.pct)
               .slice(0, 3)
-              .map((flo: any, index: number) => (
+              .map((flo, index) => (
                 <div key={index} className="bg-white p-5 rounded-2xl border border-blue-50 shadow-sm flex items-center gap-4 relative overflow-hidden group hover:border-blue-300 transition-all">
                   <div className="absolute top-0 right-0 p-2">
                     <span className="text-2xl opacity-30 group-hover:opacity-100 transition-opacity">
@@ -115,10 +126,10 @@ export default async function Home() {
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] mb-8">Branch Analysis (Achievement)</h3>
           <div className="space-y-6">
             {['Golaghat', 'Tezpur', 'Dhekiajuli', 'Gohpur'].map((branchName) => {
-              const branchData = (data as any[]).filter((row: any) => 
+              const branchData = data.filter((row: SheetRow) => 
                 row && row.Branch && row.Branch.toString().toLowerCase() === branchName.toLowerCase()
               );
-              const bTarget = branchData.reduce((sum: number, row: any) => sum + clean(row["Disb. Target"]), 0);
+              const bTarget = branchData.reduce((sum: number, row: SheetRow) => sum + clean(row["Disb. Target"]), 0);
               const bDone = branchData.reduce((sum: number, row: any) => sum + clean(row["Disb. Done"]), 0);
               const bPct = bTarget > 0 ? Math.min((bDone / bTarget) * 100, 100) : 0;
 
@@ -142,11 +153,11 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Quick Links */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 text-center sm:text-left">
+        {/* Footer Link Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
             <a href="/rankings" className="flex items-center justify-between p-6 bg-slate-900 rounded-3xl text-white hover:bg-slate-800 transition-all">
               <div>
-                <h4 className="text-lg font-bold italic uppercase tracking-tighter text-white">🏆 Full Rankings</h4>
+                <h4 className="text-lg font-bold italic uppercase tracking-tighter">🏆 Full Rankings</h4>
                 <p className="text-slate-400 text-xs">Hall of Fame</p>
               </div>
               <span className="text-2xl">→</span>
@@ -154,7 +165,7 @@ export default async function Home() {
             <div className="p-6 bg-white border border-slate-200 rounded-3xl">
                <div className="grid grid-cols-2 gap-4 w-full">
                   {['Golaghat', 'Tezpur', 'Dhekiajuli', 'Gohpur'].map(b => (
-                    <a key={b} href={`/branch/${b}`} className="text-xs font-bold text-slate-400 hover:text-blue-600 uppercase tracking-widest transition-colors">
+                    <a key={b} href={`/branch/${b}`} className="text-xs font-bold text-slate-400 hover:text-blue-600 uppercase tracking-widest">
                       {b} →
                     </a>
                   ))}
