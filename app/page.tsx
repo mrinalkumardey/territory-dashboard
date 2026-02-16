@@ -54,7 +54,7 @@ export default async function Home() {
               </div>
             </div>
             
-            {/* NEW POSITION: Clean Progress Bar immediately after % */}
+            {/* Progress Bar immediately after % */}
             <div className="mt-6">
                <div className="w-full bg-slate-100 h-4 rounded-full overflow-hidden">
                  <div 
@@ -87,15 +87,15 @@ export default async function Home() {
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] mb-6">Top 3 Performers</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {data
-              .filter(row => row["FLO Name"])
-              .map(row => ({
+              .filter((row: any) => row && row["FLO Name"])
+              .map((row: any) => ({
                 name: row["FLO Name"],
                 branch: row["Branch"],
                 pct: (clean(row["Disb. Done"]) / clean(row["Disb. Target"])) * 100
               }))
               .sort((a, b) => b.pct - a.pct)
               .slice(0, 3)
-              .map((flo, index) => (
+              .map((flo: any, index: number) => (
                 <div key={index} className="bg-white p-5 rounded-2xl border border-blue-50 shadow-sm flex items-center gap-4 relative overflow-hidden group hover:border-blue-300 transition-all">
                   <div className="absolute top-0 right-0 p-2">
                     <span className="text-2xl opacity-30 group-hover:opacity-100 transition-opacity">
@@ -120,7 +120,7 @@ export default async function Home() {
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] mb-8">Branch Analysis (Achievement)</h3>
           <div className="space-y-6">
             {['Golaghat', 'Tezpur', 'Dhekiajuli', 'Gohpur'].map((branchName) => {
-              const branchData = data.filter(row => row.Branch?.toString().toLowerCase() === branchName.toLowerCase());
+              const branchData = data.filter((row: any) => row && row.Branch?.toString().toLowerCase() === branchName.toLowerCase());
               const bTarget = branchData.reduce((sum: number, row: any) => sum + clean(row["Disb. Target"]), 0);
               const bDone = branchData.reduce((sum: number, row: any) => sum + clean(row["Disb. Done"]), 0);
               const bPct = bTarget > 0 ? Math.min((bDone / bTarget) * 100, 100) : 0;
