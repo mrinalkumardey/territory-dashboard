@@ -17,12 +17,10 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans flex flex-col">
-      {/* Top Accent Bar */}
       <div className="h-2 w-full bg-blue-600" />
 
       <div className="max-w-6xl mx-auto px-6 py-12 flex-grow">
         
-        {/* Main Header */}
         <header className="mb-12 border-b border-slate-200 pb-8 flex justify-between items-end">
           <div>
             <h1 className="text-4xl font-black text-slate-800 tracking-tight">
@@ -37,10 +35,8 @@ export default async function Home() {
           </div>
         </header>
 
-        {/* Hero Scorecard Section */}
+        {/* Hero Scorecard */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
-          
-          {/* Main Percentage Achievement Card */}
           <div className="lg:col-span-2 bg-white rounded-3xl p-8 shadow-sm border border-slate-200 flex flex-col justify-center">
             <div className="flex justify-between items-start">
               <div>
@@ -54,7 +50,6 @@ export default async function Home() {
               </div>
             </div>
             
-            {/* Progress Bar immediately after % */}
             <div className="mt-6">
                <div className="w-full bg-slate-100 h-4 rounded-full overflow-hidden">
                  <div 
@@ -69,7 +64,6 @@ export default async function Home() {
             </div>
           </div>
 
-          {/* Quick Stats Vertical Stack */}
           <div className="flex flex-col gap-4">
             <div className="flex-1 bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col justify-center">
               <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Total Disbursement</p>
@@ -82,7 +76,7 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Territory Stars (Top 3 FLOs) */}
+        {/* Territory Stars - FIXED TYPES HERE */}
         <div className="mb-12">
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] mb-6">Top 3 Performers</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -103,7 +97,7 @@ export default async function Home() {
                     </span>
                   </div>
                   <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
-                    {flo.name.charAt(0)}
+                    {flo.name ? flo.name.charAt(0) : "F"}
                   </div>
                   <div>
                     <p className="font-bold text-slate-800 text-sm leading-tight">{flo.name}</p>
@@ -115,7 +109,7 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Branch Performance Comparison */}
+        {/* Branch Performance Comparison - FIXED TYPES HERE */}
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 mb-12">
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] mb-8">Branch Analysis (Achievement)</h3>
           <div className="space-y-6">
@@ -154,7 +148,6 @@ export default async function Home() {
               </div>
               <span className="text-2xl">→</span>
             </a>
-            
             <div className="p-6 bg-white border border-slate-200 rounded-3xl flex items-center justify-between">
                <div className="grid grid-cols-2 gap-4 w-full">
                   {['Golaghat', 'Tezpur', 'Dhekiajuli', 'Gohpur'].map(b => (
@@ -167,7 +160,6 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* Footer Section */}
       <footer className="w-full py-8 border-t border-slate-200 text-center bg-white">
         <p className="text-slate-400 text-xs font-medium uppercase tracking-widest">
           Developed by{" "}
