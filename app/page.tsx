@@ -1,15 +1,16 @@
+// Version 1.0.4 - Production Type Fix
 import { getSheetData } from "@/components/dataFetcher";
 
 export default async function Home() {
   const data = await getSheetData();
   
-  const clean = (val: any) => {
+  const clean = (val: any): number => {
     if (!val) return 0;
     const cleaned = val.toString().replace(/[^0-9.]/g, '');
     return parseFloat(cleaned) || 0;
   };
 
-  // 1. Grand Totals Calculation (Fixed Types)
+  // 1. Grand Totals Calculation
   const totalTarget = data.reduce((sum: number, row: any) => sum + clean(row["Disb. Target"]), 0);
   const totalDone = data.reduce((sum: number, row: any) => sum + clean(row["Disb. Done"]), 0);
   const totalGap = totalTarget - totalDone;
@@ -21,7 +22,6 @@ export default async function Home() {
 
       <div className="max-w-6xl mx-auto px-6 py-12 flex-grow">
         
-        {/* Main Header */}
         <header className="mb-12 border-b border-slate-200 pb-8 flex justify-between items-end">
           <div>
             <h1 className="text-4xl font-black text-slate-800 tracking-tight">
@@ -36,7 +36,7 @@ export default async function Home() {
           </div>
         </header>
 
-        {/* Hero Scorecard Section */}
+        {/* Hero Scorecard */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
           <div className="lg:col-span-2 bg-white rounded-3xl p-8 shadow-sm border border-slate-200 flex flex-col justify-center">
             <div className="flex justify-between items-start">
@@ -77,11 +77,11 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Territory Stars (Top 3 FLOs) - Fixed Types */}
+        {/* Territory Stars - PULLING AS ANY TO BYPASS UNKNOWN ERROR */}
         <div className="mb-12">
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] mb-6">Top 3 Performers</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {data
+            {(data as any[])
               .filter((row: any) => row && row["FLO Name"])
               .map((row: any) => ({
                 name: row["FLO Name"],
@@ -98,7 +98,7 @@ export default async function Home() {
                     </span>
                   </div>
                   <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
-                    {flo.name ? flo.name.charAt(0) : "F"}
+                    {flo.name ? String(flo.name).charAt(0) : "F"}
                   </div>
                   <div>
                     <p className="font-bold text-slate-800 text-sm leading-tight">{flo.name}</p>
@@ -110,12 +110,14 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Branch Analysis - Fixed Types */}
+        {/* Branch Performance Comparison */}
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 mb-12">
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] mb-8">Branch Analysis (Achievement)</h3>
           <div className="space-y-6">
             {['Golaghat', 'Tezpur', 'Dhekiajuli', 'Gohpur'].map((branchName) => {
-              const branchData = data.filter((row: any) => row && row.Branch?.toString().toLowerCase() === branchName.toLowerCase());
+              const branchData = (data as any[]).filter((row: any) => 
+                row && row.Branch && row.Branch.toString().toLowerCase() === branchName.toLowerCase()
+              );
               const bTarget = branchData.reduce((sum: number, row: any) => sum + clean(row["Disb. Target"]), 0);
               const bDone = branchData.reduce((sum: number, row: any) => sum + clean(row["Disb. Done"]), 0);
               const bPct = bTarget > 0 ? Math.min((bDone / bTarget) * 100, 100) : 0;
@@ -141,19 +143,18 @@ export default async function Home() {
         </div>
 
         {/* Quick Links */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 text-center sm:text-left">
             <a href="/rankings" className="flex items-center justify-between p-6 bg-slate-900 rounded-3xl text-white hover:bg-slate-800 transition-all">
               <div>
-                <h4 className="text-lg font-bold italic uppercase tracking-tighter">🏆 Full Rankings</h4>
+                <h4 className="text-lg font-bold italic uppercase tracking-tighter text-white">🏆 Full Rankings</h4>
                 <p className="text-slate-400 text-xs">Hall of Fame</p>
               </div>
               <span className="text-2xl">→</span>
             </a>
-            
-            <div className="p-6 bg-white border border-slate-200 rounded-3xl flex items-center justify-between">
+            <div className="p-6 bg-white border border-slate-200 rounded-3xl">
                <div className="grid grid-cols-2 gap-4 w-full">
                   {['Golaghat', 'Tezpur', 'Dhekiajuli', 'Gohpur'].map(b => (
-                    <a key={b} href={`/branch/${b}`} className="text-xs font-bold text-slate-400 hover:text-blue-600 uppercase tracking-widest">
+                    <a key={b} href={`/branch/${b}`} className="text-xs font-bold text-slate-400 hover:text-blue-600 uppercase tracking-widest transition-colors">
                       {b} →
                     </a>
                   ))}
@@ -162,7 +163,6 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* Footer Section */}
       <footer className="w-full py-8 border-t border-slate-200 text-center bg-white">
         <p className="text-slate-400 text-xs font-medium uppercase tracking-widest">
           Developed by{" "}
