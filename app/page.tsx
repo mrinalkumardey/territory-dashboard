@@ -1,5 +1,6 @@
-// Version 1.0.7 - Smart Filtering & Auto-Branch Detection
+// Version 1.0.8 - Fixed Territory Stars Logic
 import { getSheetData } from "@/components/dataFetcher";
+export const dynamic = 'force-dynamic'; 
 
 interface SheetRow {
   "FLO Name": string;
@@ -22,7 +23,6 @@ export default async function Home() {
   };
 
   // --- SMART FILTERING ---
-  // Only include rows that have an FLO Name and are NOT "Total" summary rows
   const validRows = data.filter(row => 
     row["FLO Name"] && 
     !row["FLO Name"].toString().toLowerCase().includes("total")
@@ -67,8 +67,6 @@ export default async function Home() {
         <div className="grid grid-cols-1 gap-6 mb-12">
           <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-              
-              {/* BLOCK 1: AMOUNT DISBURSEMENT */}
               <div>
                 <div className="flex justify-between items-end mb-4">
                   <div>
@@ -82,14 +80,12 @@ export default async function Home() {
                     <p className="text-lg font-bold text-slate-700">₹{(totalTarget/100000).toFixed(1)}L</p>
                   </div>
                 </div>
-
                 <div className="w-full bg-slate-100 h-4 rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-blue-600 rounded-full transition-all duration-1000" 
                     style={{ width: `${Math.min(territoryPct, 100)}%` }}
                   />
                 </div>
-
                 <div className="flex justify-between mt-4">
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase">Disb. Done</p>
@@ -102,7 +98,6 @@ export default async function Home() {
                 </div>
               </div>
 
-              {/* BLOCK 2: FILE TARGETS */}
               <div>
                 <div className="flex justify-between items-end mb-4">
                   <div>
@@ -116,14 +111,12 @@ export default async function Home() {
                     <p className="text-lg font-bold text-slate-700">{totalFileTarget}</p>
                   </div>
                 </div>
-
                 <div className="w-full bg-slate-100 h-4 rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-emerald-500 rounded-full transition-all duration-1000" 
                     style={{ width: `${Math.min(filePct, 100)}%` }}
                   />
                 </div>
-
                 <div className="flex justify-between mt-4">
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase">Files Done</p>
@@ -135,21 +128,24 @@ export default async function Home() {
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
 
-        {/* Territory Stars */}
+        {/* Territory Stars - FIXED SECTION */}
         <div className="mb-12">
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] mb-6">Top 3 Performers</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {validRows
-              .map((row: SheetRow) => ({
-                name: row["FLO Name"],
-                branch: row["Branch"],
-                pct: (clean(row["Disb. Done"]) / clean(row["Disb. Target"])) * 100
-              }))
+              .map((row: SheetRow) => {
+                const target = clean(row["Disb. Target"]);
+                const done = clean(row["Disb. Done"]);
+                return {
+                  name: row["FLO Name"],
+                  branch: row["Branch"],
+                  pct: target > 0 ? (done / target) * 100 : 0
+                };
+              })
               .sort((a, b) => b.pct - a.pct)
               .slice(0, 3)
               .map((flo, index) => (
@@ -170,7 +166,7 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Branch Analysis - NOW AUTO-DETECTING BRANCHES */}
+        {/* Branch Analysis */}
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 mb-12">
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] mb-8">Branch Analysis (Achievement)</h3>
           <div className="space-y-6">
