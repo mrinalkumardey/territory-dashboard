@@ -32,30 +32,24 @@ export default async function Home() {
     return parseFloat(cleaned) || 0;
   };
 
-  // --- NEW: ROBUST DATE PARSER ---
   const parseSheetDate = (dateVal: any) => {
     if (!dateVal) return null;
     const d = new Date(dateVal);
-    // If it's a valid date object already
     if (!isNaN(d.getTime())) return d;
-    
-    // If it's a string like "DD/MM/YYYY" or "YYYY-MM-DD"
     const dateStr = dateVal.toString();
     const parts = dateStr.split(/[/.-]/);
     if (parts.length === 3) {
-      // Check if it's YYYY-MM-DD or DD-MM-YYYY
       if (parts[0].length === 4) return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
       return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
     }
     return null;
   };
 
-  // --- CALCULATION LOGIC ---
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const rawDeadline = config.find(c => c.Parameter === "Target Deadline")?.Value;
-  const deadline = parseSheetDate(rawDeadline) || new Date(2026, 1, 26); // Default to Feb 26, 2026
+  const deadline = parseSheetDate(rawDeadline) || new Date(2026, 1, 26);
   deadline.setHours(0, 0, 0, 0);
   
   const offDays = config
@@ -79,7 +73,6 @@ export default async function Home() {
   }
   const daysToDisplay = workingDaysLeft > 0 ? workingDaysLeft : 1;
 
-  // --- DATA PROCESSING ---
   const validRows = data.filter(row => row["FLO Name"] && !row["FLO Name"].toString().toLowerCase().includes("total"));
 
   const totalTarget = validRows.reduce((sum, row) => sum + clean(row["Disb. Target"]), 0);
@@ -97,6 +90,9 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans flex flex-col">
       <div className="h-2 w-full bg-blue-600" />
+      <div className="flex items-center gap-4 mb-8">
+  
+</div>
 
       <div className="max-w-6xl mx-auto px-6 py-12 flex-grow">
         <header className="mb-12 border-b border-slate-200 pb-8 flex justify-between items-end">
@@ -171,7 +167,7 @@ export default async function Home() {
             return (
               <div key={branchName} className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-md transition-all">
                 <div className="flex justify-between items-center mb-8 pb-4 border-b border-slate-50">
-                  <h3 className="text-2xl font-black text-slate-800 tracking-tighter">{branchName}</h3>
+                  <h3 className="text-2xl font-black text-slate-800 tracking-tighter uppercase">{branchName}</h3>
                   <div className="bg-emerald-50 px-4 py-2 rounded-2xl border border-emerald-100 text-right">
                     <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest">Req. File DRR</p>
                     <p className="text-xl font-black text-emerald-700">{fDRR}<span className="text-[10px]"> /Day</span></p>
@@ -211,7 +207,7 @@ export default async function Home() {
         <div className="mb-12">
           <a href="/rankings" className="flex items-center justify-between p-8 bg-slate-900 rounded-[2.5rem] text-white hover:bg-slate-800 transition-all shadow-xl group">
             <div>
-              <h4 className="text-2xl font-black italic uppercase tracking-tighter">🏆 Full Rankings</h4>
+              <h4 className="text-2xl font-black uppercase tracking-tighter">🏆 Full Rankings</h4>
               <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1">Leaderboard Analysis</p>
             </div>
             <span className="text-3xl">→</span>
@@ -220,8 +216,10 @@ export default async function Home() {
       </div>
 
       <footer className="w-full py-8 text-center bg-white border-t border-slate-100">
-        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em]">Developed by Mrinal Kumar</p>
-      </footer>
+  <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em]">
+    Developed by <a href="https://www.linkedin.com/in/mrinal-kumar-dey/" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline font-black">Mrinal Kumar</a>
+  </p>
+</footer>
     </main>
   );
 }
