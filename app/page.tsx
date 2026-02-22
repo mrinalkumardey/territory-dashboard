@@ -1,4 +1,5 @@
 import { getSheetData } from "@/components/dataFetcher";
+import MonthSelector from "@/components/MonthSelector";
 
 export const dynamic = 'force-dynamic';
 
@@ -17,14 +18,24 @@ interface ConfigRow {
   Value: any;
 }
 
-export default async function Home() {
+// Next.js 15: searchParams is a Promise
+export default async function Home({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
+  const resolvedSearchParams = await searchParams;
+
+  // 1. Determine active cycle (defaults to current month)
+  const todayDate = new Date();
+  const currentMonthDefault = todayDate.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' }).replace(' ', '-');
+  const activeMonth = resolvedSearchParams.month || currentMonthDefault;
+
+  // 2. Fetch data with safety fallbacks to prevent crashes
   const [rawData, configData] = await Promise.all([
-    getSheetData("Sheet1"),
-    getSheetData("Config")
+    getSheetData(activeMonth).catch(() => []),
+    getSheetData("Config").catch(() => [])
   ]);
 
-  const data = rawData as SheetRow[];
-  const config = configData as ConfigRow[];
+  // Ensure variables are always arrays even if fetch fails
+  const data = (Array.isArray(rawData) ? rawData : []) as SheetRow[];
+  const config = (Array.isArray(configData) ? configData : []) as ConfigRow[];
 
   const clean = (val: any): number => {
     if (!val) return 0;
@@ -73,7 +84,8 @@ export default async function Home() {
   }
   const daysToDisplay = workingDaysLeft > 0 ? workingDaysLeft : 1;
 
-  const validRows = data.filter(row => row["FLO Name"] && !row["FLO Name"].toString().toLowerCase().includes("total"));
+  // SAFE FILTERING: Prevents the "cannot read property filter of undefined" error
+  const validRows = data.filter(row => row && row["FLO Name"] && !row["FLO Name"].toString().toLowerCase().includes("total"));
 
   const totalTarget = validRows.reduce((sum, row) => sum + clean(row["Disb. Target"]), 0);
   const totalDone = validRows.reduce((sum, row) => sum + clean(row["Disb. Done"]), 0);
@@ -90,19 +102,28 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans flex flex-col">
       <div className="h-2 w-full bg-blue-600" />
-      <div className="flex items-center gap-4 mb-8">
-  
-</div>
-
-      <div className="max-w-6xl mx-auto px-6 py-12 flex-grow">
-        <header className="mb-12 border-b border-slate-200 pb-8 flex justify-between items-end">
+      
+      <div className="max-w-6xl mx-auto px-6 py-12 flex-grow w-full">
+        {/* REFINED HEADER */}
+        <header className="mb-12 border-b border-slate-200 pb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div>
             <h1 className="text-4xl font-black text-slate-800 tracking-tight">
               Tezpur Territory <span className="text-blue-600">Dashboard</span>
             </h1>
-            <p className="text-slate-500 font-medium mt-1 uppercase text-[10px] tracking-widest">
-              Closing Strategy: {deadline.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} • {daysToDisplay} Days Left
-            </p>
+            <div className="flex items-center gap-4 mt-2">
+               <p className="text-slate-500 font-medium uppercase text-[10px] tracking-widest border-r border-slate-300 pr-4">
+                 Closing: {deadline.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} • {daysToDisplay} Days Left
+               </p>
+               <a href="/trends" className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest hover:text-indigo-800 transition-colors flex items-center gap-1">
+                 View Trend Analysis <span className="text-xs font-light">↗</span>
+               </a>
+            </div>
+          </div>
+
+          {/* ARCHIVE SELECTOR */}
+          <div className="flex items-center gap-3 bg-white border border-slate-200 pl-4 pr-1 py-1 rounded-2xl shadow-sm">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Cycle:</span>
+            <MonthSelector activeMonth={activeMonth} />
           </div>
         </header>
 
@@ -155,14 +176,15 @@ export default async function Home() {
         {/* Detailed Branch Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           {uniqueBranches.map((branchName: any) => {
-            const bData = validRows.filter(row => row.Branch === branchName);
-            const amtT = bData.reduce((s, r) => s + clean(r["Disb. Target"]), 0);
-            const amtD = bData.reduce((s, r) => s + clean(r["Disb. Done"]), 0);
-            const filT = bData.reduce((s, r) => s + clean(r["File Target"]), 0);
-            const filD = bData.reduce((s, r) => s + clean(r["File Done"]), 0);
+            const bRows = validRows.filter(row => row.Branch === branchName);
+            const amtT = bRows.reduce((s, r) => s + clean(r["Disb. Target"]), 0);
+            const amtD = bRows.reduce((s, r) => s + clean(r["Disb. Done"]), 0);
+            const filT = bRows.reduce((s, r) => s + clean(r["File Target"]), 0);
+            const filD = bRows.reduce((s, r) => s + clean(r["File Done"]), 0);
             
             const fGap = filT - filD;
             const fDRR = fGap > 0 ? (fGap / daysToDisplay).toFixed(1) : "0.0";
+            const bAchv = amtT > 0 ? (amtD / amtT) * 100 : 0;
 
             return (
               <div key={branchName} className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-md transition-all">
@@ -177,22 +199,34 @@ export default async function Home() {
                 <div className="grid grid-cols-2 gap-8 mb-8">
                   <div className="space-y-4">
                     <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Amount Stats</p>
-                    <div><p className="text-[9px] text-slate-400 uppercase font-bold">Target / Done</p><p className="text-sm font-bold text-slate-700">₹{(amtT/100000).toFixed(1)}L / <span className="text-blue-600">₹{(amtD/100000).toFixed(1)}L</span></p></div>
-                    <div><p className="text-[9px] text-slate-400 uppercase font-bold">Gap / Achv%</p><p className="text-sm font-bold text-slate-700"><span className="text-red-500">₹{((amtT-amtD)/100000).toFixed(1)}L</span> / {((amtD/amtT)*100).toFixed(1)}%</p></div>
+                    <div>
+                      <p className="text-[9px] text-slate-400 uppercase font-bold text-nowrap">Target / Done</p>
+                      <p className="text-sm font-bold text-slate-700">₹{(amtT/100000).toFixed(1)}L / <span className="text-blue-600">₹{(amtD/100000).toFixed(1)}L</span></p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] text-slate-400 uppercase font-bold text-nowrap">Gap / Achv%</p>
+                      <p className="text-sm font-bold text-slate-700"><span className="text-red-500">₹{((amtT-amtD)/100000).toFixed(1)}L</span> / {bAchv.toFixed(1)}%</p>
+                    </div>
                   </div>
                   <div className="space-y-4">
                     <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">File Stats</p>
-                    <div><p className="text-[9px] text-slate-400 uppercase font-bold">Target / Done</p><p className="text-sm font-bold text-slate-700">{filT} / <span className="text-emerald-600">{filD}</span></p></div>
-                    <div><p className="text-[9px] text-slate-400 uppercase font-bold">Gap / Achv%</p><p className="text-sm font-bold text-slate-700"><span className="text-orange-500">{filT-filD}</span> / {((filD/filT)*100).toFixed(1)}%</p></div>
+                    <div>
+                      <p className="text-[9px] text-slate-400 uppercase font-bold">Target / Done</p>
+                      <p className="text-sm font-bold text-slate-700">{filT} / <span className="text-emerald-600">{filD}</span></p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] text-slate-400 uppercase font-bold">Gap / Achv%</p>
+                      <p className="text-sm font-bold text-slate-700"><span className="text-orange-500">{filT-filD}</span> / {filT > 0 ? ((filD/filT)*100).toFixed(1) : 0}%</p>
+                    </div>
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-600" style={{ width: `${Math.min((amtD/amtT)*100, 100)}%` }} />
+                    <div className="h-full bg-blue-600" style={{ width: `${Math.min(bAchv, 100)}%` }} />
                   </div>
                   <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500" style={{ width: `${Math.min((filD/filT)*100, 100)}%` }} />
+                    <div className="h-full bg-emerald-500" style={{ width: `${Math.min(filT > 0 ? (filD/filT)*100 : 0, 100)}%` }} />
                   </div>
                 </div>
                 
@@ -215,11 +249,11 @@ export default async function Home() {
         </div>
       </div>
 
-      <footer className="w-full py-8 text-center bg-white border-t border-slate-100">
-  <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em]">
-    Developed by <a href="https://www.linkedin.com/in/mrinal-kumar-dey/" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline font-black">Mrinal Kumar</a>
-  </p>
-</footer>
+      <footer className="w-full py-8 text-center bg-white border-t border-slate-100 mt-auto">
+        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em]">
+          Developed by <a href="https://www.linkedin.com/in/mrinal-kumar-dey/" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline font-black">Mrinal Kumar</a>
+        </p>
+      </footer>
     </main>
   );
 }
